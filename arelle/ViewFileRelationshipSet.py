@@ -130,9 +130,18 @@ class ViewRelationshipSet(ViewFile.View):
                 #Deepak.Khopade@gmail.com: 15-Feb-2017
                 if preferredLabel != None:
                     attr["preferredLabel"] = os.path.basename(preferredLabel)
-                #if concept.label.documentation != None:
-                #attr["documentation"] = str(concept.label.documentation)
-                print (modelObject)
+                #Deepak.Khopade@gmail.com: 30-Jul-2018
+                if concept.label != None:
+                    attr["documentation"] = str(concept.label(XbrlConst.documentationLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole))
+                    
+                # if concept.label != None and concept.label(XbrlConst.totalLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole) != None:
+                #     attr["totalLabel"] = str(concept.label(XbrlConst.totalLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole))
+
+                # if concept.label != None and concept.label(XbrlConst.periodStartLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole) != None:
+                #     attr["periodStartLabel"] = str(concept.label(XbrlConst.periodStartLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole))
+
+                # if concept.label != None and concept.label(XbrlConst.periodEndLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole) != None:
+                #     attr["periodEndLabel"] = str(concept.label(XbrlConst.periodEndLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole))
             elif self.arcrole == "Table-rendering":
                 text = concept.localName
                 xmlRowElementName = "element"
