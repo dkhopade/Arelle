@@ -196,6 +196,9 @@ def parseAndRun(args):
     parser.add_option("--logCodeFilter", action="store", dest="logCodeFilter",
                       help=_("Regular expression filter for log message code."))
     parser.add_option("--logcodefilter", action="store", dest="logCodeFilter", help=SUPPRESS_HELP)
+    parser.add_option("--logTextMaxLength", action="store", dest="logTextMaxLength", type="int",
+                      help=_("Log file text field max length override."))
+    parser.add_option("--logtextmaxlength", action="store", dest="logTextMaxLength", type="int", help=SUPPRESS_HELP)
     parser.add_option("--statusPipe", action="store", dest="statusPipe", help=SUPPRESS_HELP)
     parser.add_option("--monitorParentProcess", action="store", dest="monitorParentProcess", help=SUPPRESS_HELP)
     parser.add_option("--outputAttribution", action="store", dest="outputAttribution", help=SUPPRESS_HELP)
@@ -252,6 +255,9 @@ def parseAndRun(args):
     parser.add_option("--formulavarfilterwinnowing", action="store_true", dest="formulaVarFilterWinnowing", help=SUPPRESS_HELP)
     parser.add_option("--formulaVarFiltersResult", action="store_true", dest="formulaVarFiltersResult", help=_("Specify formula tracing."))
     parser.add_option("--formulavarfiltersresult", action="store_true", dest="formulaVarFiltersResult", help=SUPPRESS_HELP)
+    parser.add_option("--testcaseResultsCaptureWarnings", action="store_true", dest="testcaseResultsCaptureWarnings",
+                      help=_("For testcase variations capture warning results, default is inconsistency or warning if there is any warning expected result.  "))
+    parser.add_option("--testcaseresultscapturewarnings", action="store_true", dest="testcaseResultsCaptureWarnings", help=SUPPRESS_HELP)
     parser.add_option("--formulaRunIDs", action="store", dest="formulaRunIDs", help=_("Specify formula/assertion IDs to run, separated by a '|' character."))
     parser.add_option("--formularunids", action="store", dest="formulaRunIDs", help=SUPPRESS_HELP)
     parser.add_option("--formulaCompileOnly", action="store_true", dest="formulaCompileOnly", help=_("Specify formula are to be compiled but not executed."))
@@ -416,7 +422,8 @@ def parseAndRun(args):
             parser.error(_("incorrect arguments with --webserver, please try\n  python CntlrCmdLine.py --help"))
         else:
             # note that web server logging does not strip time stamp, use logFormat if that is desired
-            cntlr.startLogging(logFileName='logToBuffer')
+            cntlr.startLogging(logFileName='logToBuffer',
+                               logTextMaxLength=options.logTextMaxLength)
             from arelle import CntlrWebMain
             app = CntlrWebMain.startWebserver(cntlr, options)
             if options.webserver == '::wsgi':
@@ -426,7 +433,8 @@ def parseAndRun(args):
         cntlr.startLogging(logFileName=(options.logFile or "logToPrint"),
                            logFormat=(options.logFormat or "[%(messageCode)s] %(message)s - %(file)s"),
                            logLevel=(options.logLevel or "DEBUG"),
-                           logToBuffer=getattr(options, "logToBuffer", False)) # e.g., used by EdgarRenderer to require buffered logging
+                           logToBuffer=getattr(options, "logToBuffer", False),
+                           logTextMaxLength=options.logTextMaxLength) # e.g., used by EdgarRenderer to require buffered logging
         cntlr.run(options)
         
         return cntlr
@@ -773,6 +781,8 @@ class CntlrCmdLine(Cntlr.Cntlr):
             fo.traceVariableFiltersResult = True
         if options.formulaVarFiltersResult:
             fo.traceVariableFiltersResult = True
+        if options.testcaseResultsCaptureWarnings:
+            fo.testcaseResultsCaptureWarnings = True
         if options.formulaRunIDs:
             fo.runIDs = options.formulaRunIDs   
         if options.formulaCompileOnly:
