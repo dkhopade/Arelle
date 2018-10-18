@@ -134,8 +134,15 @@ class ViewRelationshipSet(ViewFile.View):
                 #Deepak.Khopade@gmail.com: 15-Feb-2017 - start
                 # added "id", "name",  "abstract", "substitutionGroup", 
                 # "dataType", "nillable", "perioType", "balanceType" and "preferredLabel" so that can be imported to database
+                namespace = ""
+
+                if (str(concept.id) is not None):
+                    splitted = str(concept.id).split("_")
+                    if (len(splitted) > 1):
+                        namespace = splitted[0]
+                        
                 attr = {
-                    #"id": str(concept.id),
+                    "namespace": namespace,
                     "name": str(concept.name),
                     "abstract": str(concept.abstract),
                     "substitutionGroup": str(concept.substitutionGroupQname),
@@ -161,7 +168,7 @@ class ViewRelationshipSet(ViewFile.View):
 
                 if viewReferences(concept) != None and len(viewReferences(concept)) > 0:
                     attr["references"] = viewReferences(concept)
-                    
+
                 #Deepak.Khopade@gmail.com: 15-Feb-2017 - end
             elif self.arcrole == "Table-rendering":
                 text = concept.localName
