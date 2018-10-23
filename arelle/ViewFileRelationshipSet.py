@@ -73,7 +73,8 @@ class ViewRelationshipSet(ViewFile.View):
         if relationshipSet:
             # for each URI in definition order
             for roledefinition, linkroleUri in linkroleUris:
-                attr = {"role": linkroleUri}
+                #Deepak-Khopade-isdr: 15-Feb-2017 added "roleDefinition" to see it on presentation tree
+                attr = {"roleUri": linkroleUri, "roleDefinition": roledefinition}
                 self.addRow([roledefinition], treeIndent=0, colSpan=len(heading), 
                             xmlRowElementName="linkRole", xmlRowEltAttr=attr, xmlCol0skipElt=True)
                 linkRelationshipSet = self.modelXbrl.relationshipSet(arcrole, linkroleUri, linkqname, arcqname)
@@ -113,9 +114,45 @@ class ViewRelationshipSet(ViewFile.View):
                     concept.typedDomainElement is not None):
                     text += " (typedDomain={0})".format(concept.typedDomainElement.qname)  
                 xmlRowElementName = "concept"
-                attr = {"name": str(concept.qname)}
-                if preferredLabel != XbrlConst.conceptNameLabelRole:
-                    attr["label"] = text
+                #Deepak.Khopade@gmail.com: 15-Feb-2017 - start
+                # added "id", "name",  "abstract", "substitutionGroup", 
+                # "dataType", "nillable", "perioType", "balanceType" and "preferredLabel" so that can be imported to database
+                namespace = ""
+
+                if (str(concept.id) is not None):
+                    splitted = str(concept.id).split("_")
+                    if (len(splitted) > 1):
+                        namespace = splitted[0]
+                        
+                attr = {
+                    "namespace": namespace,
+                    "name": str(concept.name),
+                    "abstract": str(concept.abstract),
+                    "substitutionGroup": str(concept.substitutionGroupQname),
+                    "dataType": str(concept.typeQname),
+                    "nillable": str(concept.nillable),
+                    "periodType": str(concept.periodType),
+                    "balanceType": str(concept.balance)}
+                
+                if preferredLabel != XbrlConst.conceptNameLabelRole and concept.label != None:
+                    attr["standardLabel"] = str(concept.label(XbrlConst.standardLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole))
+                
+                if preferredLabel != None:
+                    attr["preferredLabel"] = os.path.basename(preferredLabel)
+                    if preferredLabel == XbrlConst.periodStartLabel and concept.label != None:
+                        attr["periodStartLabel"] = str(concept.label(XbrlConst.periodStartLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole))
+                    if preferredLabel == XbrlConst.periodEndLabel and concept.label != None:
+                        attr["periodEndLabel"] = str(concept.label(XbrlConst.periodEndLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole))
+                    if preferredLabel != None and os.path.basename(preferredLabel) == "totalLabel":
+                        attr["totalLabel"] = text
+                
+                if concept.label != None:
+                    attr["documentation"] = str(concept.label(XbrlConst.documentationLabel,lang=self.lang,linkroleHint=relationshipSet.linkrole))
+
+                if viewReferences(concept) != None and len(viewReferences(concept)) > 0:
+                    attr["references"] = viewReferences(concept)
+
+                #Deepak.Khopade@gmail.com: 15-Feb-2017 - end
             elif self.arcrole == "Table-rendering":
                 text = concept.localName
                 xmlRowElementName = "element"
@@ -132,7 +169,9 @@ class ViewRelationshipSet(ViewFile.View):
             else:   # just a resource
                 text = concept.localName
                 xmlRowElementName = text
-            cols = [text]
+            
+            #Deepak.Khopade@gmail.com: 15-Feb-2017
+            cols = [text, str(concept.name), str(concept.typeQname)]
             if arcrole == "XBRL-dimensions" and isRelation:
                 relArcrole = modelObject.arcrole
                 cols.append( os.path.basename( relArcrole ) )
@@ -153,9 +192,10 @@ class ViewRelationshipSet(ViewFile.View):
                         preferredLabel = os.path.basename(preferredLabel)
                 else:
                     preferredLabel = None
-                cols.append(preferredLabel)
-                cols.append(concept.niceType)
-                cols.append(viewReferences(concept))
+                #Deepak.Khopade@gmail.com: 15-Feb-2017 commented below 2 lines to avoid loading preferredLabel & type again
+                #cols.append(preferredLabel)
+                #cols.append(concept.niceType)
+                #cols.append(viewReferences(concept))
             elif arcrole == XbrlConst.summationItem:
                 if isRelation:
                     cols.append("{:0g} ".format(modelObject.weight))
@@ -171,6 +211,10 @@ class ViewRelationshipSet(ViewFile.View):
                     cols.append(concept.localName)
                     cols.append(concept.role or '')
                     cols.append(concept.xmlLang)
+            
+            #Deepak.Khopade@gmail.com: 31-Jul-2018 - remove extra columns
+            del cols[1:3]
+
             self.addRow(cols, treeIndent=indent, xmlRowElementName=xmlRowElementName, xmlRowEltAttr=attr, xmlCol0skipElt=True)
             if concept not in visited:
                 visited.add(concept)
