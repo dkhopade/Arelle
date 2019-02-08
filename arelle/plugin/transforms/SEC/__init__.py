@@ -10,7 +10,8 @@ are not subject to domestic copyright protection. 17 U.S.C. 105.
 Local copy of text2num.py was obtained from https://github.com/ghewgill/text2num
 
 '''
-from arelle.ModelValue import qname
+import datetime
+from arelle.ModelValue import qname, lastDayOfMonth
 from arelle.XPathContext import FunctionArgType
 
 #local copy of text2num.py from https://github.com/ghewgill/text2num
@@ -59,6 +60,19 @@ def durhour(arg):
     n, sign = getValue(arg)
     hours = int(n)
     return durationValue(None, None, None, hours, sign)
+
+dateQuarterEndPattern = re_compile(r"([^0-9]*(1|[Ff]irst|2|[Ss]econd|3|[Tt]hird|4|[Ff]ourth|[Ll]ast)[^0-9]*([0-9]{4})[^0-9]*)|([^0-9]*([0-9]{4})[^0-9]*(1|[Ff]irst|2|[Ss]econd|3|[Tt]hird|4|[Ff]ourth|[Ll]ast)[^0-9]*)") 
+
+# the output is a date value of a calendar quarter end
+def datequarterend(arg):
+    try:
+        m = dateQuarterEndPattern.match(arg)
+        year = int(m.group(3) or m.group(5)) # year pattern, raises AttributeError if no pattern match
+        month = {"first":3, "1":3, "second":6, "2":6, "third":9, "3":9, "fourth":12, "last":12, "4":12
+                 }[(m.group(2) or m.group(6)).lower()]
+        return str(datetime.date(year, month, lastDayOfMonth(year, month)))
+    except (AttributeError, ValueError, KeyError):
+        raise FunctionArgType(1, "xs:date")
 
 def getValue(arg):
     try:
@@ -127,9 +141,9 @@ def numwordsen(arg):
     except (NumberException, TypeError, ValueError) as ex:
         raise FunctionArgType(1, str(ex))
     
-durwordsenPattern = re_compile(r"^\s*((((([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)\s+[Hh]undred(\s+(and\s+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)((-|\s+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)((-|\s+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))|[Zz]ero|[Nn]o|[0-9][0-9]{0,3})\s+[Yy]ears?(,?\s+(and\s+)?|$))?((((([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)\s+[Hh]undred(\s+(and\s+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)((-|\s+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)((-|\s+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))|[Zz]ero|[Nn]o|[0-9][0-9]{0,3})\s+[Mm]onths?(,?\s+(and\s+)?|$))?((((([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)\s+[Hh]undred(\s+(and\s+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)((-|\s+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)((-|\s+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))|[Zz]ero|[Nn]o|[0-9][0-9]{0,3})\s+[Dd]ays?)?\s*$")
+durwordsenPattern = re_compile(r"^\s*((((([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)(-|\s+)[Hh]undred((-|\s+)(and\s+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)((-|\s+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)((-|\s+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))|[Zz]ero|[Nn]o|[0-9][0-9]{0,3})(-|\s+)[Yy]ears?(,?(-|\s+)(and\s+)?|$))?((((([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)(-|\s+)[Hh]undred((-|\s+)(and\s+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)((-|\s+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)((-|\s+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))|[Zz]ero|[Nn]o|[0-9][0-9]{0,3})(-|\s+)[Mm]onths?(,?(-|\s+)(and\s+)?|$))?((((([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)(-|\s+)[Hh]undred((-|\s+)(and\s+)?(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)((-|\s+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))?)|(([Oo]ne|[Tt](wo|hree|en|welve|hirteen)|[Ff](our(teen)?|ive|ifteen)|[Ss](ix(teen)?|even(teen)?)|[Ee](ight(een)?|leven)|[Nn]ine(teen)?)|([Tt](wenty|hirty)|[Ff](orty|ifty)|[Ss](ixty|eventy)|[Ee]ighty|[Nn]inety)((-|\s+)([Oo]ne|[Tt](wo|hree)|[Ff](our|ive)|[Ss](ix|even)|[Ee]ight|[Nn]ine))?))|[Zz]ero|[Nn]o|[0-9][0-9]{0,3})(-|\s+)[Dd]ays?)?\s*$")
 
-durwordZeroNoPattern = re_compile(r"^\s*([Zz]ero|[Nn]o(ne)?)\s*$")
+durwordZeroNoPattern = re_compile(r"^\s*-?([Zz]ero|[Nn]o(ne)?)-?\s*$")
 
 
 def durwordsen(arg):
@@ -139,7 +153,7 @@ def durwordsen(arg):
     try:
         dur = 'P'
         durWordsMatchGroups = durWordsMatch.groups()
-        for groupIndex, groupSuffix in ((1,"Y"), (61,"M"), (121, "D")):
+        for groupIndex, groupSuffix in ((1,"Y"), (65,"M"), (129, "D")):
             groupPart = durWordsMatchGroups[groupIndex]
             if groupPart and not durwordZeroNoPattern.match(groupPart):
                 if groupPart.isnumeric():
@@ -158,6 +172,7 @@ def loadSECtransforms(customTransforms, *args, **kwargs):
         qname(ixtSEC, "ixt-sec:durweek"): durweek,
         qname(ixtSEC, "ixt-sec:durday"): durday,
         qname(ixtSEC, "ixt-sec:durhour"): durhour,
+        qname(ixtSEC, "ixt-sec:datequarterend"): datequarterend,
         qname(ixtSEC, "ixt-sec:numinf"): numinf,
         qname(ixtSEC, "ixt-sec:numneginf"): numneginf,
         qname(ixtSEC, "ixt-sec:numnan"): numnan,
@@ -167,7 +182,7 @@ def loadSECtransforms(customTransforms, *args, **kwargs):
     
 __pluginInfo__ = {
     'name': 'SEC Inline Transforms',
-    'version': '1.0.0.178', # SEC version
+    'version': '18.4 Phase 2', # SEC version
     'description': "This plug-in adds custom transforms SEC inline filing with durations.  ",
     'license': 'Apache-2',
     'author': 'SEC employees (integrated by Mark V Systems Limited)',
